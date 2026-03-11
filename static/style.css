@@ -1,0 +1,224 @@
+:root {
+    --bg-color: #eff6ff; /* blue-50 */
+    --card-bg: #ffffff;
+    --text-main: #1e3a8a; /* blue-900 */
+    --text-muted: #6b7280; /* gray-500 */
+    --accent: #f97316; /* orange-500 */
+    --accent-hover: #ea580c; /* orange-600 */
+    --border-color: #e5e7eb;
+    --secondary-bg: #dbeafe; /* blue-100 */
+    --scroll-thumb: #fb923c;
+    --scroll-track: #eff6ff;
+}
+
+[data-theme='dark'] {
+    --bg-color: #0f172a; /* slate-900 */
+    --card-bg: #1e293b; /* slate-800 */
+    --text-main: #f1f5f9; /* slate-100 */
+    --text-muted: #94a3b8; /* slate-400 */
+    --accent: #fb923c; /* orange-400 */
+    --accent-hover: #f97316;
+    --border-color: #334155;
+    --secondary-bg: #334155;
+    --scroll-thumb: #475569;
+    --scroll-track: #1e293b;
+}
+
+[data-theme='beach'] {
+    --bg-color: #fef3c7; /* amber-100 */
+    --card-bg: #fffbeb; /* amber-50 */
+    --text-main: #78350f; /* amber-900 */
+    --text-muted: #92400e; /* amber-800 */
+    --accent: #0ea5e9; /* sky-500 */
+    --accent-hover: #0284c7; /* sky-600 */
+    --border-color: #fde68a;
+    --secondary-bg: #fef3c7;
+    --scroll-thumb: #fbbf24;
+    --scroll-track: #fffbeb;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scroll-thumb);
+    border-radius: 20px;
+}
+
+.task-card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.task-card:hover {
+    transform: translateY(-4px) scale(1.01);
+}
+
+.task-card.selected {
+    border: 2px solid var(--accent);
+    background-color: var(--secondary-bg);
+}
+
+.priority-3 { border-left: 6px solid #ef4444; }
+.priority-2 { border-left: 6px solid #f97316; }
+.priority-1 { border-left: 6px solid #3b82f6; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Modal and Tab specific styles */
+.modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+}
+
+.input-field {
+    background-color: var(--secondary-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.theme-btn {
+    transition: all 0.2s;
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: var(--border-color);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.calendar-day {
+    background-color: var(--card-bg);
+    min-height: 100px;
+    padding: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background-color: var(--secondary-bg);
+    transform: scale(1.02);
+    z-index: 10;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.calendar-day.today {
+    background-color: var(--secondary-bg);
+}
+
+.calendar-day.other-month {
+    opacity: 0.3;
+}
+
+.calendar-event {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: var(--accent);
+    color: white;
+}
+
+.more-indicator {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: bold;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.day-details-item {
+    background-color: var(--secondary-bg);
+    border-radius: 1rem;
+    padding: 1rem;
+    transition: transform 0.2s;
+}
+
+.chart-bar {
+    flex: 1;
+    background-color: var(--accent);
+    border-radius: 0.5rem 0.5rem 0 0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    min-width: 20px;
+    max-width: 60px;
+}
+
+.chart-bar:hover {
+    filter: brightness(1.2);
+    transform: translateY(-5px);
+}
+
+.chart-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 20;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.chart-bar:hover .chart-tooltip {
+    opacity: 1;
+}
+
+.chart-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1e293b;
+}
+
+.tab-content {
+    display: hidden;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.nav-link.active {
+    color: var(--accent);
+    border-bottom: 3px solid var(--accent);
+}

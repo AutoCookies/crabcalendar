@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crab Calendar</title>
+    <link rel="icon" type="image/x-icon" href="/assets/logo.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="font-['Outfit'] min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-[var(--accent)] flex items-center gap-3">
+                    <img src="/assets/logo.png" alt="Crab Logo" class="w-12 h-12"> Crab Calendar
+                </h1>
+                <p class="text-[var(--text-muted)] text-sm mt-1">Lightweight. AI-Friendly. Snappy.</p>
+            </div>
+
+            <nav
+                class="flex items-center gap-6 bg-[var(--card-bg)] px-6 py-2 rounded-2xl shadow-sm border border-[var(--border-color)]">
+                <button data-tab="tasks"
+                    class="nav-link active flex items-center gap-2 font-semibold pb-1 transition-all">
+                    <i data-lucide="list-todo" class="w-5 h-5"></i> Tasks
+                </button>
+                <button data-tab="calendar" class="nav-link flex items-center gap-2 font-semibold pb-1 transition-all">
+                    <i data-lucide="calendar-days" class="w-5 h-5"></i> Calendar
+                </button>
+                <button data-tab="stats" class="nav-link flex items-center gap-2 font-semibold pb-1 transition-all">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Stats
+                </button>
+            </nav>
+
+            <div class="flex gap-4">
+                <button id="settingsBtn"
+                    class="p-2 text-[var(--text-main)] hover:bg-[var(--secondary-bg)] rounded-full transition-colors">
+                    <i data-lucide="settings"></i>
+                </button>
+                <button id="addTaskBtn"
+                    class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-6 py-2 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 font-semibold flex items-center gap-2">
+                    <i data-lucide="plus"></i> New Task
+                </button>
+            </div>
+        </header>
+
+        <!-- Tasks Tab Content -->
+        <div id="tasksTab" class="tab-content active">
+            <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Sidebar Summary -->
+                <section class="lg:col-span-3">
+                    <div
+                        class="bg-[var(--card-bg)] rounded-3xl p-6 shadow-xl border-t-8 border-[var(--accent)] sticky top-8">
+                        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
+                            <img src="/assets/logo.png" alt="Logo" class="w-6 h-6"> Daily Shell
+                        </h2>
+                        <div id="summaryContent" class="space-y-4">
+                            <div class="p-4 bg-[var(--secondary-bg)] rounded-2xl opacity-80">
+                                <p class="text-[var(--text-main)] text-sm font-semibold">Pending Tasks</p>
+                                <p id="pendingCount" class="text-3xl font-bold text-[var(--accent)]">0</p>
+                            </div>
+                            <div class="p-4 bg-[var(--secondary-bg)] rounded-2xl opacity-80">
+                                <p class="text-[var(--text-main)] text-sm font-semibold">Today's Focus</p>
+                                <p id="todayTasks" class="text-lg font-medium text-[var(--text-main)] opacity-70">No
+                                    tasks due today</p>
+                            </div>
+                            <a href="/api/agent/context" target="_blank"
+                                class="mt-4 flex items-center justify-center gap-2 w-full py-2 border-2 border-[var(--border-color)] text-[var(--text-muted)] rounded-xl hover:bg-[var(--secondary-bg)] transition-colors text-sm">
+                                <i data-lucide="bot" class="w-4 h-4"></i> View AI Context
+                            </a>
+                        </div>
+                    </div>
+                </section>
+                <!-- Task List Section -->
+                <section class="lg:col-span-5 space-y-4">
+                    <!-- Controls Bar -->
+                    <div
+                        class="bg-[var(--card-bg)] p-4 rounded-2xl shadow-sm border border-[var(--border-color)] flex flex-wrap gap-4 items-center">
+                        <div class="flex-1 min-w-[200px] relative">
+                            <i data-lucide="search"
+                                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"></i>
+                            <input type="text" id="taskSearch" placeholder="Search tasks..."
+                                class="w-full pl-10 pr-4 py-2 bg-[var(--secondary-bg)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)] outline-none">
+                        </div>
+                        <select id="priorityFilter"
+                            class="px-4 py-2 bg-[var(--secondary-bg)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)] outline-none font-medium">
+                            <option value="all">All Priorities</option>
+                            <option value="3">High Priority</option>
+                            <option value="2">Medium Priority</option>
+                            <option value="1">Low Priority</option>
+                        </select>
+                        <button id="sortPriorityBtn"
+                            class="p-2 bg-[var(--secondary-bg)] hover:bg-[var(--border-color)] rounded-xl transition-colors"
+                            title="Sort by Priority">
+                            <i data-lucide="arrow-up-down" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div id="taskList" class="space-y-4"></div>
+                </section>
+                <!-- Task Details Panel -->
+                <section class="lg:col-span-4">
+                    <div class="bg-[var(--card-bg)] rounded-3xl shadow-xl border border-[var(--border-color)] sticky top-8 min-h-[500px]"
+                        id="taskDetailsContainer">
+                        <!-- Component will be injected here -->
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Calendar Tab Content -->
+        <div id="calendarTab" class="tab-content hidden">
+            <div class="bg-[var(--card-bg)] rounded-3xl p-8 shadow-xl border border-[var(--border-color)]">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 id="calendarMonth" class="text-3xl font-bold text-[var(--text-main)]">Month Year</h2>
+                    <div class="flex gap-2">
+                        <button id="prevMonth"
+                            class="p-2 hover:bg-[var(--secondary-bg)] rounded-xl transition-colors"><i
+                                data-lucide="chevron-left"></i></button>
+                        <button id="nextMonth"
+                            class="p-2 hover:bg-[var(--secondary-bg)] rounded-xl transition-colors"><i
+                                data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-grid">
+                    <!-- Day Headers -->
+                    <div
+                        class="bg-[var(--secondary-bg)] p-2 text-center text-xs font-bold uppercase text-[var(--text-muted)]">
+                        Sun</div>
+                    <div
+                        class="bg-[var(--secondary-bg)] p-2 text-center text-xs font-bold uppercase text-[var(--text-muted)]">
+                        Mon</div>
+                    <div
+                        class="bg-[var(--secondary-bg)] p-2 text-center text-xs font-bold uppercase text-[var(--text-muted)]">
+                        Tue</div>
+                    <div
+                        class="bg-[var(--secondary-bg)] p-2 text-center text-xs font-bold uppercase text-[var(--text-muted)]">
+                        Wed</div>
+                    <div
+                        class="bg-[var(--secondary-bg)] p-2 text-center text-xs font-bold uppercase text-[var(--text-muted)]">
+                        Thu</div>
+                    <div
+                        class="bg-[var(--secondary-bg)] p-2 text-center text-xs font-bold uppercase text-[var(--text-muted)]">
+                        Fri</div>
+                    <div
+                        class="bg-[var(--secondary-bg)] p-2 text-center text-xs font-bold uppercase text-[var(--text-muted)]">
+                        Sat</div>
+                    <!-- Calendar cells will be injected here -->
+                    <div id="calendarDays" class="contents"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Tab Content -->
+        <div id="statsTab" class="tab-content hidden">
+            <div class="bg-[var(--card-bg)] rounded-3xl p-8 shadow-xl border border-[var(--border-color)]">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold text-[var(--text-main)]">Task Analytics</h2>
+                    <p class="text-[var(--text-muted)] text-sm">Volume over the last 14 days</p>
+                </div>
+                <div class="h-80 flex items-end gap-2 px-4 pb-8 border-b-2 border-l-2 border-[var(--border-color)] relative"
+                    id="statsChart">
+                    <!-- Bars will be injected here -->
+                </div>
+                <div class="flex justify-between px-4 mt-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest"
+                    id="statsLabels">
+                    <!-- Labels will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Task and Settings) remain same as before but ensured they work with new structure -->
+    <div id="taskModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div
+            class="bg-[var(--card-bg)] modal-content rounded-3xl p-8 w-full max-w-md shadow-2xl transform transition-all">
+            <h2 id="modalTitle"
+                class="text-2xl font-bold text-[var(--text-main)] mb-6 underline decoration-[var(--accent)] decoration-4">
+                Add Task</h2>
+            <form id="taskForm" class="space-y-4">
+                <input type="hidden" id="taskId">
+                <div>
+                    <label class="block text-sm font-semibold text-[var(--text-main)] mb-1">Title</label>
+                    <input type="text" id="title" required
+                        class="w-full px-4 py-2 input-field rounded-xl focus:ring-2 focus:ring-[var(--accent)] outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-[var(--text-main)] mb-1">Description</label>
+                    <textarea id="description" rows="3"
+                        class="w-full px-4 py-2 input-field rounded-xl focus:ring-2 focus:ring-[var(--accent)] outline-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-[var(--text-main)] mb-1">Priority</label>
+                        <select id="priority"
+                            class="w-full px-4 py-2 input-field rounded-xl focus:ring-2 focus:ring-[var(--accent)] outline-none">
+                            <option value="1">Low</option>
+                            <option value="2" selected>Medium</option>
+                            <option value="3">High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-[var(--text-main)] mb-1">Due Date</label>
+                        <input type="datetime-local" id="dueDate" required
+                            class="w-full px-4 py-2 input-field rounded-xl focus:ring-2 focus:ring-[var(--accent)] outline-none">
+                    </div>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button type="button" id="closeModal"
+                        class="flex-1 py-2 text-[var(--text-muted)] font-semibold hover:bg-[var(--secondary-bg)] rounded-xl transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 py-2 bg-[var(--accent)] text-white font-bold rounded-xl shadow-lg hover:bg-[var(--accent-hover)] transition-colors">Save
+                        Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div
+            class="bg-[var(--card-bg)] modal-content rounded-3xl p-8 w-full max-w-sm shadow-2xl transform transition-all">
+            <h2 class="text-2xl font-bold text-[var(--text-main)] mb-6 flex items-center gap-2">
+                <i data-lucide="brush" class="text-[var(--accent)]"></i> Appearance
+            </h2>
+            <div class="space-y-4">
+                <p class="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Select Theme</p>
+                <div class="grid grid-cols-1 gap-3">
+                    <button data-theme-set="light"
+                        class="theme-btn flex items-center justify-between px-6 py-4 bg-white border border-gray-200 rounded-2xl text-blue-900 font-bold">
+                        <span class="flex items-center gap-3"><i data-lucide="sun" class="w-5 h-5"></i> Light</span>
+                        <div class="w-4 h-4 rounded-full border-2 border-orange-500 bg-orange-500 hidden check-icon">
+                        </div>
+                    </button>
+                    <button data-theme-set="dark"
+                        class="theme-btn flex items-center justify-between px-6 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 font-bold">
+                        <span class="flex items-center gap-3"><i data-lucide="moon" class="w-5 h-5"></i> Dark</span>
+                        <div class="w-4 h-4 rounded-full border-2 border-orange-400 bg-orange-400 hidden check-icon">
+                        </div>
+                    </button>
+                    <button data-theme-set="beach"
+                        class="theme-btn flex items-center justify-between px-6 py-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 font-bold">
+                        <span class="flex items-center gap-3"><i data-lucide="palmtree" class="w-5 h-5"></i>
+                            Beach</span>
+                        <div class="w-4 h-4 rounded-full border-2 border-sky-500 bg-sky-500 hidden check-icon"></div>
+                    </button>
+                </div>
+            </div>
+            <button id="closeSettings"
+                class="mt-8 w-full py-3 bg-[var(--secondary-bg)] text-[var(--text-main)] font-bold rounded-2xl hover:opacity-80 transition-opacity">
+                Done
+            </button>
+        </div>
+    </div>
+
+    <!-- Day Details Modal -->
+    <div id="dayDetailsModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-40">
+        <div
+            class="bg-[var(--card-bg)] modal-content rounded-3xl p-8 w-full max-w-lg shadow-2xl transform transition-all max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="detailsDateLabel" class="text-2xl font-bold text-[var(--text-main)]">Date Details</h2>
+                <button id="closeDetails" class="p-2 hover:bg-[var(--secondary-bg)] rounded-full transition-colors">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div id="dayTasksList" class="space-y-3 overflow-y-auto pr-2 flex-1 mb-6">
+                <!-- Tasks for this day will be listed here -->
+            </div>
+            <button id="addDayTaskBtn"
+                class="w-full py-3 bg-[var(--accent)] text-white font-bold rounded-2xl shadow-lg hover:bg-[var(--accent-hover)] transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="plus"></i> Add Task for this Day
+            </button>
+        </div>
+    </div>
+
+    <script src="components/details.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
