@@ -57,6 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
         prioritySortOrder = prioritySortOrder === 'desc' ? 'asc' : 'desc';
         renderTasks();
     });
+
+    // Toggle range field in modal
+    document.getElementsByName('recurringType').forEach(r => {
+        r.addEventListener('change', (e) => {
+            const rangeEnd = document.getElementById('modalRangeEnd');
+            rangeEnd.classList.toggle('hidden', e.target.value !== 'range');
+        });
+    });
 });
 
 addTaskBtn.addEventListener('click', () => openModal());
@@ -410,6 +418,13 @@ function openModal(task = null, prefillDate = null) {
     document.getElementById('description').value = task ? task.description : '';
     document.getElementById('priority').value = task ? task.priority : '2';
     
+    // Hide recurring options when editing
+    document.getElementById('recurringOptions').classList.toggle('hidden', !!task);
+    // Reset recurring radio buttons
+    document.getElementsByName('recurringType').forEach(r => r.checked = r.value === 'none');
+    document.getElementById('modalRangeEnd').classList.add('hidden');
+    document.getElementById('modalRangeEnd').value = '';
+
     const dateInput = document.getElementById('dueDate');
     if (task) {
         const d = new Date(task.due_date);
@@ -449,11 +464,53 @@ async function handleTaskSubmit(e) {
                 body: JSON.stringify(taskData)
             });
         } else {
-            await fetch('/api/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(taskData)
-            });
+            const recurringType = document.querySelector('input[name="recurringType"]:checked').value;
+            if (recurringType === 'none') {
+                await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(taskData)
+                });
+            } else {
+                // Calculate recurring tasks
+                const tasksToCreate = [taskData]; // Include the first task
+                const baseDate = new Date(taskData.due_date);
+                let count = 0;
+                let interval = 1;
+
+                if (recurringType === 'everyday') {
+                    count = 7;
+                    interval = 1;
+                } else if (recurringType === 'weekly') {
+                    count = 4;
+                    interval = 7;
+                } else if (recurringType === 'range') {
+                    const rangeEndVal = document.getElementById('modalRangeEnd').value;
+                    if (!rangeEndVal) {
+                        alert('Please select an end date for the range');
+                        return;
+                    }
+                    const rangeEndDate = new Date(rangeEndVal);
+                    const diffTime = rangeEndDate - baseDate;
+                    count = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                    interval = 1;
+                }
+
+                for (let i = 1; i <= count; i++) {
+                    const nextDate = new Date(baseDate);
+                    nextDate.setDate(baseDate.getDate() + (i * interval));
+                    tasksToCreate.push({
+                        ...taskData,
+                        due_date: nextDate.toISOString()
+                    });
+                }
+
+                await fetch('/api/tasks/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tasks: tasksToCreate })
+                });
+            }
         }
         hideModal();
         fetchTasks();
