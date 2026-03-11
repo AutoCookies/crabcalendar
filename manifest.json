@@ -1,0 +1,45 @@
+{
+    "id": "crabcalendar",
+    "name": "Crab Calendar",
+    "version": "1.0.0",
+    "description": "Secure, offline-first scheduling and task tracking.",
+    "agent_tools": [
+        {
+            "name": "schedule_event",
+            "description": "Schedule a new event in the calendar.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "description": "ISO format time"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "description": "ISO format time"
+                    }
+                },
+                "required": [
+                    "title",
+                    "start_time"
+                ]
+            }
+        },
+        {
+            "name": "list_events",
+            "description": "List events for a given time range.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "YYYY-MM-DD"
+                    }
+                }
+            }
+        }
+    ]
+}
