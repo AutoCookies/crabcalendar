@@ -3,33 +3,64 @@ let calendarRoot = null;
 export async function mount(container) {
     console.log("[CrabCalendar] Mounting...");
 
-    // 1. Create the plugin's root element
+    // 1. Inject Styles & Scripts
+    if (!document.getElementById('crab-calendar-styles')) {
+        const tw = document.createElement('script');
+        tw.src = 'https://cdn.tailwindcss.com';
+        document.head.appendChild(tw);
+
+        const lucide = document.createElement('script');
+        lucide.src = 'https://unpkg.com/lucide@latest';
+        document.head.appendChild(lucide);
+
+        const link = document.createElement('link');
+        link.id = 'crab-calendar-styles';
+        link.rel = 'stylesheet';
+        link.href = '/plugins/crabcalendar/dist/style.css';
+        document.head.appendChild(link);
+    }
+
+    // 2. Create the plugin's root element
     calendarRoot = document.createElement('div');
     calendarRoot.id = 'crab-calendar-plugin-root';
-    calendarRoot.className = 'w-full h-full p-6 bg-[#121212] overflow-auto';
+    calendarRoot.className = 'w-full h-full overflow-auto bg-[var(--bg-primary)]';
 
-    // 2. Embed the core UI from index.html (Simplified for refactor demo)
+    // 3. Inject Full HTML
     calendarRoot.innerHTML = `
-    <div class="calendar-shell flex flex-col gap-6">
-        <header class="flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-[#ffd700]">Crab Calendar</h1>
-            <div class="flex gap-2">
-                <button id="prev-month" class="p-2 bg-[#2a2a2a] rounded">Prev</button>
-                <button id="next-month" class="p-2 bg-[#2a2a2a] rounded">Next</button>
+    <div class="calendar-app container mx-auto px-4 py-8" style="background: var(--bg-primary); min-height: 100%;">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-[#ffd700] flex items-center gap-3">
+                    <img src="/plugins/crabcalendar/assets/logo.png" alt="Crab Logo" class="w-12 h-12"> Crab Calendar
+                </h1>
+                <p class="text-gray-400 text-sm mt-1">Lightweight. AI-Friendly. Snappy.</p>
             </div>
+            
+            <nav class="flex items-center gap-6 bg-[#1a1a1a] px-6 py-2 rounded-2xl shadow-sm border border-[#333]">
+                <button class="nav-link active flex items-center gap-2 font-semibold pb-1 text-[#ffd700]">Tasks</button>
+                <button class="nav-link flex items-center gap-2 font-semibold pb-1 text-gray-400">Calendar</button>
+            </nav>
         </header>
-        
-        <div id="calendar-grid" class="grid grid-cols-7 gap-1 bg-[#222] p-1 rounded-lg">
-            <!-- Grid will be populated by app logic -->
-        </div>
 
-        <div id="event-list" class="mt-8">
-            <h3 class="text-lg font-semibold mb-2">Upcoming Tasks</h3>
-            <ul id="tasks-ul" class="space-y-2">
-                <li class="p-3 bg-[#1e1e1e] border-l-4 border-yellow-500 rounded">Design Microkernel Architecture</li>
-                <li class="p-3 bg-[#1e1e1e] border-l-4 border-gray-600 rounded">Implement Lazy Loading in Shell</li>
-            </ul>
-        </div>
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <section class="lg:col-span-3">
+                <div class="bg-[#1a1a1a] rounded-3xl p-6 shadow-xl border-t-8 border-[#ffd700]">
+                    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">Daily Shell</h2>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-[#252525] rounded-2xl">
+                            <p class="text-gray-400 text-sm font-semibold">Pending Tasks</p>
+                            <p class="text-3xl font-bold text-[#ffd700]">3</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="lg:col-span-9">
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1 bg-[#222] p-1 rounded-lg">
+                    <!-- Grid will be populated by initCalendar -->
+                </div>
+            </section>
+        </main>
     </div>
   `;
 

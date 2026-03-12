@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTheme(currentTheme);
     fetchTasks();
     lucide.createIcons();
-    TaskDetails.render(null); 
+    TaskDetails.render(null);
 
     // Filter Listeners
     document.getElementById('taskSearch').addEventListener('input', (e) => {
@@ -122,7 +122,7 @@ function setTheme(theme) {
     currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
-    
+
     document.querySelectorAll('[data-theme-set]').forEach(btn => {
         const isActive = btn.getAttribute('data-theme-set') === theme;
         btn.classList.toggle('active', isActive);
@@ -133,7 +133,7 @@ function setTheme(theme) {
 
 async function fetchTasks() {
     try {
-        const response = await fetch('/api/tasks');
+        const response = await fetch('http://127.0.0.1:11435/v1/spaces/plugins/ipc/crabcalendar/api/tasks');
         tasks = await response.json() || [];
         renderTasks();
         updateSummary();
@@ -147,7 +147,7 @@ async function fetchTasks() {
 function renderTasks() {
     if (!taskList) return;
     taskList.innerHTML = '';
-    
+
     let filtered = [...tasks];
 
     // Filter by TODAY if in tasks tab
@@ -158,8 +158,8 @@ function renderTasks() {
 
     // Search filter
     if (taskSearchQuery) {
-        filtered = filtered.filter(t => 
-            t.title.toLowerCase().includes(taskSearchQuery) || 
+        filtered = filtered.filter(t =>
+            t.title.toLowerCase().includes(taskSearchQuery) ||
             t.description.toLowerCase().includes(taskSearchQuery)
         );
     }
@@ -200,7 +200,7 @@ function renderTasks() {
         };
 
         const dueDate = new Date(task.due_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-        
+
         card.innerHTML = `
             <div class="flex-1">
                 <div class="flex items-center gap-3">
@@ -245,26 +245,26 @@ function renderCalendar() {
     calendarDaysGrid.innerHTML = '';
     const year = calendarDate.getFullYear();
     const month = calendarDate.getMonth();
-    
+
     calendarMonthLabel.innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(calendarDate);
-    
+
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     for (let i = 0; i < firstDay; i++) {
         const cell = document.createElement('div');
         cell.className = 'calendar-day other-month';
         calendarDaysGrid.appendChild(cell);
     }
-    
+
     const today = new Date();
-    
+
     for (let d = 1; d <= daysInMonth; d++) {
         const cell = document.createElement('div');
         const isToday = today.getDate() === d && today.getMonth() === month && today.getFullYear() === year;
         cell.className = `calendar-day ${isToday ? 'today' : ''} flex flex-col`;
         cell.innerHTML = `<span class="text-sm font-bold opacity-30">${d}</span>`;
-        
+
         const dayTasks = tasks.filter(t => {
             const taskDate = new Date(t.due_date);
             return taskDate.getDate() === d && taskDate.getMonth() === month && taskDate.getFullYear() === year;
@@ -289,7 +289,7 @@ function renderCalendar() {
         cell.addEventListener('click', () => {
             showDayDetails(new Date(year, month, d), dayTasks);
         });
-        
+
         calendarDaysGrid.appendChild(cell);
     }
 }
@@ -297,10 +297,10 @@ function renderCalendar() {
 function showDayDetails(date, dayTasks) {
     selectedDayDate = date;
     selectedDayTasks = dayTasks;
-    
+
     detailsDateLabel.innerText = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(date);
     dayTasksList.innerHTML = '';
-    
+
     if (dayTasks.length === 0) {
         dayTasksList.innerHTML = '<p class="text-[var(--text-muted)] text-center py-8">No tasks for this day.</p>';
     } else {
@@ -320,7 +320,7 @@ function showDayDetails(date, dayTasks) {
             dayTasksList.appendChild(item);
         });
     }
-    
+
     dayDetailsModal.classList.remove('hidden');
     lucide.createIcons();
 }
@@ -336,11 +336,11 @@ function renderStats() {
     const daysCount = 14;
     const data = [];
     const now = new Date();
-    
+
     // Group tasks by date string
     const taskCounts = {};
     const pendingCounts = {};
-    
+
     tasks.forEach(t => {
         const d = new Date(t.due_date).toDateString();
         taskCounts[d] = (taskCounts[d] || 0) + 1;
@@ -369,7 +369,7 @@ function renderStats() {
         bar.className = 'chart-bar';
         const heightPercent = (day.total / maxTasks) * 100;
         bar.style.height = `${Math.max(heightPercent, 2)}%`; // Min height for visibility
-        
+
         // Tooltip
         const tooltip = document.createElement('div');
         tooltip.className = 'chart-tooltip';
@@ -394,7 +394,7 @@ function updateSummary() {
     pendingCount.innerText = pending;
     const today = new Date().toDateString();
     const todayTasksCount = tasks.filter(t => new Date(t.due_date).toDateString() === today && t.status === 'Pending').length;
-    document.getElementById('todayTasks').innerText = todayTasksCount > 0 
+    document.getElementById('todayTasks').innerText = todayTasksCount > 0
         ? `${todayTasksCount} task${todayTasksCount > 1 ? 's' : ''} left for today`
         : 'No tasks left for today';
 }
@@ -417,7 +417,7 @@ function openModal(task = null, prefillDate = null) {
     document.getElementById('title').value = task ? task.title : '';
     document.getElementById('description').value = task ? task.description : '';
     document.getElementById('priority').value = task ? task.priority : '2';
-    
+
     // Hide recurring options when editing
     document.getElementById('recurringOptions').classList.toggle('hidden', !!task);
     // Reset recurring radio buttons
@@ -458,7 +458,7 @@ async function handleTaskSubmit(e) {
         if (id) {
             const existing = tasks.find(t => t.id == id);
             taskData.status = existing.status;
-            await fetch(`/api/tasks/${id}`, {
+            await fetch(`http://127.0.0.1:11435/v1/spaces/plugins/ipc/crabcalendar/api/tasks/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(taskData)
@@ -466,7 +466,7 @@ async function handleTaskSubmit(e) {
         } else {
             const recurringType = document.querySelector('input[name="recurringType"]:checked').value;
             if (recurringType === 'none') {
-                await fetch('/api/tasks', {
+                await fetch('http://127.0.0.1:11435/v1/spaces/plugins/ipc/crabcalendar/api/tasks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(taskData)
@@ -505,7 +505,7 @@ async function handleTaskSubmit(e) {
                     });
                 }
 
-                await fetch('/api/tasks/bulk', {
+                await fetch('http://127.0.0.1:11435/v1/spaces/plugins/ipc/crabcalendar/api/tasks/bulk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tasks: tasksToCreate })
@@ -523,7 +523,7 @@ async function toggleStatus(id) {
     const task = tasks.find(t => t.id == id);
     const newStatus = task.status === 'Pending' ? 'Done' : 'Pending';
     try {
-        await fetch(`/api/tasks/${id}`, {
+        await fetch(`http://127.0.0.1:11435/v1/spaces/plugins/ipc/crabcalendar/api/tasks/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...task, status: newStatus })
@@ -545,7 +545,7 @@ async function toggleStatus(id) {
 async function deleteTask(id) {
     if (!confirm('Are you sure you want to delete this task?')) return;
     try {
-        await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+        await fetch(`http://127.0.0.1:11435/v1/spaces/plugins/ipc/crabcalendar/api/tasks/${id}`, { method: 'DELETE' });
         fetchTasks();
         if (!dayDetailsModal.classList.contains('hidden')) {
             dayDetailsModal.classList.add('hidden');

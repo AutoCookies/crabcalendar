@@ -2,10 +2,8 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"log"
-	"net"
 	"net/http"
 	"os"
 
@@ -13,7 +11,6 @@ import (
 	"crabcalendar/internal/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/webview/webview_go"
 )
 
 //go:embed static/* assets/*
@@ -50,30 +47,16 @@ func main() {
 	contentAssets, _ := fs.Sub(embeddedFiles, "assets")
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.FS(contentAssets))))
 
-	// 4. Start Server on a random port
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
+	// 4. Start Server
+	portStr := os.Getenv("PORT")
+	if portStr == "" {
+		portStr = "11440" // Default for crabcalendar
+	}
+
+	utils_log := log.New(os.Stdout, "[CrabCalendar] ", log.LstdFlags)
+	utils_log.Printf("Starting server on port %s", portStr)
+
+	if err := http.ListenAndServe("127.0.0.1:"+portStr, r); err != nil {
 		log.Fatal(err)
 	}
-	port := ln.Addr().(*net.TCPAddr).Port
-	srv := &http.Server{Handler: r}
-
-	go func() {
-		if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
-		}
-	}()
-
-	// 5. Setup Webview
-	debug := true
-	if os.Getenv("APP_ENV") == "production" {
-		debug = false
-	}
-	
-	w := webview.New(debug)
-	defer w.Destroy()
-	w.SetTitle("Crab Calendar")
-	w.SetSize(1000, 800, webview.HintNone)
-	w.Navigate(fmt.Sprintf("http://127.0.0.1:%d", port))
-	w.Run()
 }
